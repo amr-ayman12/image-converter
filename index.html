@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="محول صور احترافي يعمل بالكامل داخل المتصفح. تحويل مجموعة كبيرة من الصور دفعة واحدة بدون رفعها إلى أي سيرفر." />
+  <meta name="theme-color" content="#0b1020" />
+  <title>PixelShift — محول الصور</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-1"></div>
+  <div class="ambient ambient-2"></div>
+
+  <header class="topbar shell">
+    <a class="brand" href="#" aria-label="PixelShift home">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <span>
+        <strong>PixelShift</strong>
+        <small>Image Converter</small>
+      </span>
+    </a>
+    <div class="top-actions">
+      <span id="engineBadge" class="engine-badge loading"><span class="dot"></span><span>جاري تجهيز محرك التحويل…</span></span>
+      <button id="themeBtn" class="icon-btn" type="button" aria-label="تغيير المظهر" title="تغيير المظهر">☾</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">100% داخل جهازك</span>
+        <h1>حوّل صورك لأي صيغة<br><span>بسرعة وخصوصية.</span></h1>
+        <p>اسحب عشرات أو مئات الصور مرة واحدة، اختر الصيغة، ثم حوّل الكل واضغط تنزيل ZIP. الصور لا تُرفع لأي سيرفر.</p>
+        <div class="hero-pills">
+          <span>⚡ Bulk conversion</span>
+          <span>🔒 Private by design</span>
+          <span>🧩 +100 formats*</span>
+        </div>
+      </div>
+      <div class="stats-card">
+        <div><strong id="formatCount">—</strong><span>صيغة متاحة</span></div>
+        <div><strong>∞</strong><span>عدد الملفات*</span></div>
+        <div><strong>0</strong><span>Uploads</span></div>
+      </div>
+    </section>
+
+    <section class="workspace card">
+      <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="اختيار الصور">
+        <input id="fileInput" type="file" multiple hidden />
+        <div class="drop-icon" aria-hidden="true">⇧</div>
+        <h2>اسحب الصور هنا</h2>
+        <p>أو اضغط لاختيار الملفات — يمكن اختيار مجموعة كبيرة دفعة واحدة</p>
+        <button id="browseBtn" class="primary-btn" type="button">اختيار الصور</button>
+        <small>يتم اكتشاف الصيغة من محتوى الملف، وليس من الامتداد فقط.</small>
+      </div>
+
+      <div class="settings-grid">
+        <label class="field">
+          <span>تحويل إلى</span>
+          <select id="formatSelect" aria-label="صيغة التحويل">
+            <option value="PNG">PNG</option>
+            <option value="JPEG">JPG / JPEG</option>
+            <option value="WEBP">WEBP</option>
+            <option value="BMP">BMP</option>
+            <option value="ICO">ICO</option>
+          </select>
+          <small id="formatHint">سيتم تحديث القائمة تلقائيًا بعد تشغيل المحرك الكامل.</small>
+        </label>
+
+        <label class="field quality-field">
+          <span>الجودة <b id="qualityValue">92%</b></span>
+          <input id="qualityRange" type="range" min="1" max="100" value="92" />
+          <small>تؤثر بشكل أساسي على الصيغ المضغوطة مثل JPEG / WEBP / AVIF.</small>
+        </label>
+
+        <label class="field">
+          <span>المقاس</span>
+          <select id="resizeMode">
+            <option value="original">المقاس الأصلي</option>
+            <option value="percentage">نسبة مئوية</option>
+            <option value="max">حد أقصى للطول/العرض</option>
+          </select>
+          <div id="resizeExtra" class="resize-extra hidden">
+            <input id="resizeValue" type="number" min="1" value="80" />
+            <span id="resizeUnit">%</span>
+          </div>
+        </label>
+
+        <label class="field">
+          <span>خلفية الشفافية</span>
+          <div class="color-row">
+            <input id="backgroundColor" type="color" value="#ffffff" />
+            <span id="backgroundHex">#FFFFFF</span>
+          </div>
+          <small>تُستخدم تلقائيًا عند التحويل لصيغة لا تدعم الشفافية.</small>
+        </label>
+      </div>
+    </section>
+
+    <section id="queueSection" class="queue-section card hidden">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">قائمة التحويل</span>
+          <h2><span id="fileCount">0</span> ملف</h2>
+        </div>
+        <div class="queue-actions">
+          <button id="addMoreBtn" class="ghost-btn" type="button">+ إضافة صور</button>
+          <button id="clearBtn" class="ghost-btn danger" type="button">مسح الكل</button>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="progressText">جاهز للتحويل</span>
+          <strong id="progressPercent">0%</strong>
+        </div>
+        <div class="progress-track"><span id="progressBar"></span></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>الملف</th><th>الحجم</th><th>الحالة</th><th></th></tr></thead>
+          <tbody id="fileList"></tbody>
+        </table>
+      </div>
+
+      <div class="convert-bar">
+        <div class="summary">
+          <span>الحجم الأصلي</span><strong id="totalSize">0 MB</strong>
+        </div>
+        <button id="convertBtn" class="convert-btn" type="button">تحويل الكل</button>
+        <button id="downloadZipBtn" class="download-btn hidden" type="button">تنزيل ZIP</button>
+      </div>
+    </section>
+
+    <section class="features">
+      <article><span>🔐</span><h3>خصوصية كاملة</h3><p>الصور تتم معالجتها داخل المتصفح ولا يتم إرسالها إلى خادم التطبيق.</p></article>
+      <article><span>📚</span><h3>دفعات كبيرة</h3><p>المعالجة تتم بالتتابع لتقليل ضغط الذاكرة أثناء تحويل عدد كبير من الملفات.</p></article>
+      <article><span>🧠</span><h3>اكتشاف ذكي</h3><p>محرك ImageMagick يقرأ بيانات الملف نفسها، لذلك لا نعتمد فقط على اسم الامتداد.</p></article>
+      <article><span>📦</span><h3>تنزيل واحد</h3><p>بعد الانتهاء يمكنك تنزيل كل النتائج داخل ملف ZIP واحد بدون مكتبات خارجية إضافية.</p></article>
+    </section>
+  </main>
+
+  <footer class="shell footer">
+    <span>PixelShift v1.0</span>
+    <span>* الحد الفعلي لعدد/حجم الصور يعتمد على ذاكرة الجهاز والمتصفح. بعض الصيغ تتطلب محرك WASM الكامل واتصالًا بالإنترنت عند أول تحميل.</span>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./zip-utils.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

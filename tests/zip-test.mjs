@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const context={Blob,TextEncoder,Uint8Array,Uint32Array,Date,globalThis:null}; context.globalThis=context;
+vm.createContext(context); vm.runInContext(fs.readFileSync(path.join(root,'zip-utils.js'),'utf8'),context);
+const a=new Blob([new TextEncoder().encode('hello')]);
+const b=new Blob([new Uint8Array([1,2,3,4])]);
+const zip=await context.PixelZip.makeZip([{name:'a.txt',blob:a},{name:'folder/b.bin',blob:b}]);
+const d=new Uint8Array(await zip.arrayBuffer());
+const u16=o=>d[o]|(d[o+1]<<8),u32=o=>(d[o]|(d[o+1]<<8)|(d[o+2]<<16)|(d[o+3]<<24))>>>0;
+if(u32(0)!==0x04034b50)throw new Error('Bad local header');
+const nlen=u16(26),elen=u16(28),size=u32(18); const name=new TextDecoder().decode(d.slice(30,30+nlen)); const data=d.slice(30+nlen+elen,30+nlen+elen+size);
+if(name!=='a.txt'||new TextDecoder().decode(data)!=='hello')throw new Error('First ZIP entry invalid');
+const text=new TextDecoder().decode(d); if(!text.includes('folder/b.bin'))throw new Error('Second ZIP entry missing');
+if(!d.some((_,i)=>i+3<d.length&&u32(i)===0x06054b50))throw new Error('ZIP end record missing');
+console.log('ZIP implementation: PASS');
